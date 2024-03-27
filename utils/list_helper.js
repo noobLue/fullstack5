@@ -9,4 +9,18 @@ const totalLikes = (blogs) => {
     }, 0)
 }
 
-module.exports = { dummy, totalLikes }
+const favoriteBlog = (blogs) => {
+    if(blogs.length === 0) return null
+    
+    const blog = blogs.reduce((acc, next)=>{
+        return next.likes > acc.likes ? next : acc
+    }, {likes:-1})
+
+    return {
+        title: blog.title,
+        author: blog.author,
+        likes: blog.likes
+    }
+}
+
+module.exports = { dummy, totalLikes, favoriteBlog }
