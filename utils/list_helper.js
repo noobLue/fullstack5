@@ -24,25 +24,22 @@ const favoriteBlog = (blogs) => {
 }
 
 
-const getBest = (noBlogs) => {
+const getBest = (blogs, blogCounterFunc) => {
+    let noBlogs = {}
+    blogs.forEach(b => {
+        noBlogs[b.author] = (noBlogs[b.author] || 0) + blogCounterFunc(b)
+    })
+
     return Object.entries(noBlogs).reduce((acc, next)=>{
         return next[1] > acc[1] ? next : acc
     }, ['test', -1])
-}
-
-const byAuthor = (blogs, func) => {
-    let noBlogs = {}
-    blogs.forEach(b => {
-        noBlogs[b.author] = (noBlogs[b.author] || 0) + func(b)
-    })
-    return noBlogs
 }
 
 
 const mostBlogs = (blogs) => {
     if(blogs.length === 0) return null
 
-    const bestBlog = getBest(byAuthor(blogs, function(b){return 1}))
+    const bestBlog = getBest(blogs, b => 1)
 
     return {
         'author': bestBlog[0],
@@ -53,7 +50,7 @@ const mostBlogs = (blogs) => {
 const mostLikes = (blogs) => {
     if(blogs.length === 0) return null
 
-    const bestBlog = getBest(byAuthor(blogs, function(b){return b.likes}))
+    const bestBlog = getBest(blogs, b => b.likes)
     
     return {
         'author': bestBlog[0],
