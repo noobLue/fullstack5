@@ -85,6 +85,26 @@ test('has id property', async () => {
     assert.strictEqual(firstBlog.hasOwnProperty('id'), true)
 })
 
+test('a blog is correctly added', async () => {
+    const blog = {
+        'title': 'Stonebaked door',
+        'author': 'Georgia stonemason',
+        'url': 'localhost',
+        'likes': 5
+    }
+
+    await api.post('/api/blogs')
+        .send(blog)
+        .expect(201)
+        .expect('Content-Type', /application\/json/)
+
+    const res = await api.get('/api/blogs')
+
+    assert.strictEqual(res.body.length, blogs.length + 1)
+
+    assert.strictEqual(res.body[blogs.length].title, blog.title)
+})
+
 after(async ()=>{
     await mongoose.connection.close()
 })
