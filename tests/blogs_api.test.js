@@ -60,9 +60,9 @@ const blogs = [
 
 beforeEach(async () => {
     await Blog.deleteMany({})
-    blogs.forEach(async (b) => {
+
+    for(const b of blogs)
         await (new Blog(b)).save()
-    })
 })
 
 test('blogs are returned as json', async ()=>{
