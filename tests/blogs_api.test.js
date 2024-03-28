@@ -75,7 +75,7 @@ test('blogs are returned as json', async ()=>{
 test('correct amount of blogs', async () => {
     const res = await api.get('/api/blogs')
 
-    assert(res.body.length, blogs.length)
+    assert.strictEqual(res.body.length, blogs.length)
 })
 
 after(async ()=>{
