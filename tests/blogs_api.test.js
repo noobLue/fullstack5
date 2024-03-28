@@ -96,6 +96,40 @@ test('missing url is not added', async () => {
         .expect(400)
 })
 
+test('can delete a blog', async () => {
+    const blogs = await testHelper.getBlogs()
+    const lastBlog = blogs[blogs.length - 1]
+    await api.delete(`/api/blogs/${lastBlog.id}`).expect(204)
+
+    const blogsAfter = await testHelper.getBlogs()
+    assert.strictEqual(blogsAfter.length, blogs.length - 1)
+
+    const idsAfter = blogsAfter.map(b => b.id)
+    assert(!idsAfter.includes(lastBlog.id))
+})
+
+test('can update a blog', async () => {
+    const blogs = await testHelper.getBlogs()
+    const firstBlog = blogs[0]
+
+    const newBlog = {
+        ...firstBlog,
+        likes: 99
+    }
+
+    await api.put(`/api/blogs/${firstBlog.id}`)
+        .send(newBlog)
+        .expect(201)
+
+    const blogsAfter = await testHelper.getBlogs()
+   
+    
+    assert.strictEqual(blogsAfter.length, blogs.length)
+
+    assert.strictEqual(blogsAfter[0].likes, 99)
+    assert.notStrictEqual(blogsAfter[0].likes, firstBlog.likes)
+}) 
+
 after(async ()=>{
     await mongoose.connection.close()
 })
