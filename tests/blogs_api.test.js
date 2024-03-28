@@ -65,7 +65,7 @@ beforeEach(async () => {
         await (new Blog(b)).save()
 })
 
-test('blogs are returned as json', async ()=>{
+test('blogs are returned as json', async () => {
     await api
     .get('/api/blogs')
     .expect(200)
@@ -76,6 +76,13 @@ test('correct amount of blogs', async () => {
     const res = await api.get('/api/blogs')
 
     assert.strictEqual(res.body.length, blogs.length)
+})
+
+test('has id property', async () => {
+    const res = await api.get('/api/blogs')
+    const firstBlog = res.body[0]
+
+    assert.strictEqual(firstBlog.hasOwnProperty('id'), true)
 })
 
 after(async ()=>{
