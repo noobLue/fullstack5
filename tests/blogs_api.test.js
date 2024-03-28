@@ -105,6 +105,23 @@ test('a blog is correctly added', async () => {
     assert.strictEqual(res.body[blogs.length].title, blog.title)
 })
 
+test('likes are defaulted to 0', async () => {
+    const blog = {
+        'title': 'Stonebaked door',
+        'author': 'Georgia stonemason',
+        'url': 'localhost'
+    }
+
+    await api.post('/api/blogs')
+        .send(blog)
+        .expect(201)
+        .expect('Content-Type', /application\/json/)
+
+    const res = await api.get('/api/blogs')
+
+    assert.strictEqual(res.body[blogs.length].likes, 0)
+})
+
 after(async ()=>{
     await mongoose.connection.close()
 })
