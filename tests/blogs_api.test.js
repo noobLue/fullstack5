@@ -122,6 +122,30 @@ test('likes are defaulted to 0', async () => {
     assert.strictEqual(res.body[blogs.length].likes, 0)
 })
 
+test('missing title is not added', async () => {
+    const blog = {
+        'author': 'Georgia stonemason',
+        'url': 'localhost',
+        'likes': 5
+    }
+
+    await api.post('/api/blogs')
+        .send(blog)
+        .expect(400)
+})
+
+test('missing url is not added', async () => {
+    const blog = {
+        'title': 'Stonebaked door',
+        'author': 'Georgia stonemason',
+        'likes': 5
+    }
+
+    await api.post('/api/blogs')
+        .send(blog)
+        .expect(400)
+})
+
 after(async ()=>{
     await mongoose.connection.close()
 })
