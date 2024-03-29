@@ -5,11 +5,15 @@ const unknownEndpoint = (req, res) => {
 }
 
 const errorHandler = (err, req, res, next) => {
-    logger.error(err.message)
+    logger.error(`[${err.name}] `, err.message)
 
-    if(err.name == "ValidationError")
+    if(err.name === 'ValidationError')
     {
         return res.status(400).json({error: err.message})
+    }
+    else if (err.name === 'MongoServerError' && err.message.includes('E11000 duplicate key error collection'))
+    {
+        return res.status(400).json({error: 'username must be unique'})
     }
 
     next(err)

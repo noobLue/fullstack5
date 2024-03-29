@@ -73,7 +73,7 @@ describe('When some blogs exist', async ()=>{
                 .expect(201)
                 .expect('Content-Type', /application\/json/)
         
-                const blogs = await testHelper.getBlogs()
+            const blogs = await testHelper.getBlogs()
         
             assert.strictEqual(blogs[testHelper.initBlogs.length].likes, 0)
         })
