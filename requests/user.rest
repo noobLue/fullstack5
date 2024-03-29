@@ -1,0 +1,15 @@
+
+GET http://localhost:3000/api/users
+
+###
+
+POST http://localhost:3000/api/users
+Content-Type: application/json
+
+{
+    "user": "stonebaker",
+    "name": "Georgia stonemason",
+    "password": "hunter2"
+}
+
+###
