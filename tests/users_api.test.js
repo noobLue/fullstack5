@@ -1,4 +1,3 @@
-const bcrypt = require('bcrypt')
 const User = require('../models/user')
 const testHelper = require('./test_helper')
 const mongoose = require('mongoose')
@@ -37,9 +36,7 @@ describe('When there is already a user in the database', async () => {
     beforeEach(async ()=>{
         await User.deleteMany({})
     
-        const passwordHash = await bcrypt.hash('sekret', 10)
-        const user = new User({user: 'root', name: 'Anttoni', passwordHash})
-    
+        const user = await testHelper.getInitialUser()
         await user.save()
     })
 
@@ -181,7 +178,7 @@ describe('When there is already a user in the database', async () => {
     test('password cant be shorter than ', async () => {
         const existingUsers = await testHelper.getUsers()
 
-        const user = {user:'jk', name: 'Jack', password: "hu"}
+        const user = {user:'jack', name: 'Jack', password: "hu"}
 
         const res = await api.post('/api/users')
                 .send(user)
@@ -195,7 +192,17 @@ describe('When there is already a user in the database', async () => {
         assert(res.body.error.includes('is shorter than the minimum allowed length ('))
     })
     
-    
+    test('user has blogs array ', async () => {
+        const user = {user:'jack', name: 'Jack', password: "hunter2"}
+
+        const res = await api.post('/api/users')
+                .send(user)
+                .expect(201)
+                .expect('Content-Type', /application\/json/)
+
+        const newUsers = await testHelper.getUsers()
+        assert.deepStrictEqual(newUsers[newUsers.length - 1].blogs, [])
+    })
 })
 
 

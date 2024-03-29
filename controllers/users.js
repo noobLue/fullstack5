@@ -3,7 +3,8 @@ const User = require('../models/user')
 const bcrypt = require('bcrypt')
 
 userRouter.get('/', async(req, res) => {
-    res.json(await User.find({}))
+    const users = await User.find({}).populate('blogs')
+    res.json(users)
 })
 
 userRouter.post('/', async (req, res) => {
@@ -19,7 +20,7 @@ userRouter.post('/', async (req, res) => {
     const saltRounds = 10
     const passwordHash = await bcrypt.hash(password, saltRounds)
 
-    const newUser = new User({user, name, passwordHash})
+    const newUser = new User({user, name, passwordHash, blogs: []})
     const savedUser = await (newUser).save()
     res.status(201).json(savedUser)
 })

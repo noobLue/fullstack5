@@ -6,15 +6,25 @@ const app = require('../app')
 
 const api = supertest(app)
 const Blog = require('../models/blog')
+const User = require('../models/user')
 const testHelper = require('./test_helper')
 
 
 
 beforeEach(async () => {
+    await User.deleteMany({})
+
+    const user = await testHelper.getInitialUser()
+    await user.save()
+
+
     await Blog.deleteMany({})
 
     for(const b of testHelper.initBlogs)
-        await (new Blog(b)).save()
+    {
+        const blog = {...b, user: user.id}
+        await (new Blog(blog)).save()
+    }
 })
 
 describe('When some blogs exist', async ()=>{
@@ -91,6 +101,8 @@ describe('When some blogs exist', async ()=>{
         })
         
         test('missing url is not added', async () => {
+            const oldBlogs = await testHelper.getBlogs()
+
             const blog = {
                 'title': 'Stonebaked door',
                 'author': 'Georgia stonemason',
@@ -100,6 +112,86 @@ describe('When some blogs exist', async ()=>{
             await api.post('/api/blogs')
                 .send(blog)
                 .expect(400)
+        })
+
+        test('blog has user', async () => {
+            const blog = {
+                'title': 'Stonebaked door',
+                'url': 'test',
+                'author': 'Georgia stonemason',
+                'likes': 5
+            }
+        
+            await api.post('/api/blogs')
+                .send(blog)
+                .expect(201)
+
+            const newBlogs = await testHelper.getBlogs()
+
+            assert(newBlogs[newBlogs.length - 1].hasOwnProperty('user'))
+        })
+
+        test('blogs user is populated', async () => {
+            const blog = {
+                'title': 'Stonebaked door',
+                'url': 'test',
+                'author': 'Georgia stonemason',
+                'likes': 5
+            }
+            
+            await api.post('/api/blogs')
+                .send(blog)
+                .expect(201)
+
+            const res = await api.get('/api/blogs')
+            const blogs = res.body
+
+            assert(blogs[blogs.length - 1].user.user)
+            assert(blogs[blogs.length - 1].user.name)
+        })
+
+        test('blogs user doesnt have passwordHash', async () => {
+            const blog = {
+                'title': 'Stonebaked door',
+                'url': 'test',
+                'author': 'Georgia stonemason',
+                'likes': 5
+            }
+            
+            await api.post('/api/blogs')
+                .send(blog)
+                .expect(201)
+
+            const res = await api.get('/api/blogs')
+            const blogs = res.body
+
+            assert(blogs[blogs.length - 1].user)
+            assert(blogs[blogs.length - 1].user.hasOwnProperty('user'))
+            assert(!blogs[blogs.length - 1].user.hasOwnProperty('passwordHash'))
+        })
+
+        test('blog gets added to user', async () => {
+            const oldRes = await api.get('/api/users')
+            const oldUsers = oldRes.body
+
+            const blog = {
+                'title': 'Neubook',
+                'url': 'test',
+                'author': 'Georgia stonemason',
+                'likes': 5
+            }
+            
+            const resBlog = await api.post('/api/blogs')
+                .send(blog)
+                .expect(201)
+
+            const res = await api.get('/api/users')
+            const users = res.body
+
+            assert.strictEqual(users[users.length - 1].blogs.length, oldUsers[oldUsers.length -1].blogs.length + 1)
+
+            const myBlogs = users[users.length - 1].blogs
+            assert.strictEqual(myBlogs[myBlogs.length-1].id, resBlog.body.id)
         })
     })
     
