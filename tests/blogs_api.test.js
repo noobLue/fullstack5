@@ -205,6 +205,20 @@ describe('When some blogs exist', async ()=>{
 
 
         describe('authentication', async () => {
+            test('blog cant be added without authentication', async () => {
+                const blog = {
+                    'title': 'Stonebaked door',
+                    'author': 'Georgia stonemason',
+                    'url': 'localhost',
+                    'likes': 5
+                }
+    
+                const res = await api.post('/api/blogs')
+                    .send(blog)
+                    .expect(401)
+                    .expect('Content-Type', /application\/json/)
+            })
+            
             test('blog cant be added without proper authorization', async () => {
                 const blog = {
                     'title': 'Stonebaked door',
