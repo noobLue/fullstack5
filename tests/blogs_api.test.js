@@ -172,6 +172,7 @@ describe('When some blogs exist', async ()=>{
             const res = await api.get('/api/blogs')
             const blogs = res.body
 
+
             assert(blogs[blogs.length - 1].user)
             assert(blogs[blogs.length - 1].user.hasOwnProperty('user'))
             assert(!blogs[blogs.length - 1].user.hasOwnProperty('passwordHash'))
@@ -296,13 +297,28 @@ describe('When some blogs exist', async ()=>{
         test('can delete a blog', async () => {
             const blogs = await testHelper.getBlogs()
             const lastBlog = blogs[blogs.length - 1]
-            await api.delete(`/api/blogs/${lastBlog.id}`).expect(204)
+            await api.delete(`/api/blogs/${lastBlog.id}`)
+                .set('Authorization', `Bearer ${await testHelper.getInitialToken()}`)
+                .expect(204)
         
             const blogsAfter = await testHelper.getBlogs()
             assert.strictEqual(blogsAfter.length, blogs.length - 1)
         
             const idsAfter = blogsAfter.map(b => b.id)
             assert(!idsAfter.includes(lastBlog.id))
+        })
+
+        test('cant delete a blog without authentication', async () => {
+            const blogs = await testHelper.getBlogs()
+            const lastBlog = blogs[blogs.length - 1]
+            await api.delete(`/api/blogs/${lastBlog.id}`)
+                .expect(401)
+        
+            const blogsAfter = await testHelper.getBlogs()
+            assert.strictEqual(blogsAfter.length, blogs.length)
+        
+            const idsAfter = blogsAfter.map(b => b.id)
+            assert(idsAfter.includes(lastBlog.id))
         })
         
         test('can update a blog', async () => {
@@ -326,6 +342,28 @@ describe('When some blogs exist', async ()=>{
         
             assert.strictEqual(blogsAfter[0].likes, 99)
             assert.notStrictEqual(blogsAfter[0].likes, firstBlog.likes)
+        }) 
+
+        test('cant update a blog without authentication', async () => {
+            const blogs = await testHelper.getBlogs()
+            const firstBlog = blogs[0]
+        
+            const newBlog = {
+                ...firstBlog,
+                likes: 99
+            }
+        
+            await api.put(`/api/blogs/${firstBlog.id}`)
+                .send(newBlog)
+                .expect(401)
+        
+            const blogsAfter = await testHelper.getBlogs()
+           
+            
+            assert.strictEqual(blogsAfter.length, blogs.length)
+        
+            assert.notStrictEqual(blogsAfter[0].likes, 99)
+            assert.strictEqual(blogsAfter[0].likes, firstBlog.likes)
         }) 
     })
 

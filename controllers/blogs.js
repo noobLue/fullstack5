@@ -12,11 +12,11 @@ blogsRouter.get('/', async(req, res) => {
 blogsRouter.post('/', async (req, res) => {
     const {title, author, url, likes} = req.body
 
-    const decodedToken = jwt.verify(req.token, process.env.SECRET)
-    if(!decodedToken.id)
+    //const decodedToken = jwt.verify(req.token, process.env.SECRET)
+    if(!req.user)
         return res.status(401).json({error: 'invalid token'})
     
-    const user = await User.findById(decodedToken.id)
+    const user = await User.findById(req.user)
 
     let newBlog = new Blog({
         title,
@@ -34,7 +34,15 @@ blogsRouter.post('/', async (req, res) => {
 })
 
 blogsRouter.delete('/:id', async (req, res) => {
-    const blog = await Blog.findByIdAndDelete(req.params.id)
+    const blogId = req.params.id
+    const blog = await Blog.findById(blogId)
+
+    if(!req.user || blog.user.toString() !== req.user.toString())
+    {
+        return res.status(401).json({error: 'user does not match blog owner'})
+    }
+
+    await Blog.findByIdAndDelete(blogId)
     res.status(204).end()
 })
 
@@ -47,13 +55,10 @@ blogsRouter.put('/:id', async (req, res) => {
         likes: req.body.likes
     }
     
-    const decodedToken = jwt.verify(req.token, process.env.SECRET)
-    if(!decodedToken.id)
-        return res.status(401).json({error: 'invalid token'})
     const oldBlog = await Blog.findById(id)
-    if(oldBlog.user != decodedToken.id)
+    if(!req.user || oldBlog.user.toString() !== req.user.toString())
     {
-        return res.status(401).json({error: 'you dont appear to own this blog'})
+        return res.status(401).json({error: 'user does not match blog owner'})
     }
 
     const settings = { new: true, runValidators: true, context: 'query' }
