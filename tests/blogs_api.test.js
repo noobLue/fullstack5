@@ -58,8 +58,9 @@ describe('When some blogs exist', async ()=>{
                 'url': 'localhost',
                 'likes': 5
             }
-        
+
             await api.post('/api/blogs')
+                .set('Authorization', `Bearer ${await testHelper.getInitialToken()}`)
                 .send(blog)
                 .expect(201)
                 .expect('Content-Type', /application\/json/)
@@ -79,6 +80,7 @@ describe('When some blogs exist', async ()=>{
             }
         
             await api.post('/api/blogs')
+                .set('Authorization', `Bearer ${await testHelper.getInitialToken()}`)
                 .send(blog)
                 .expect(201)
                 .expect('Content-Type', /application\/json/)
@@ -96,6 +98,7 @@ describe('When some blogs exist', async ()=>{
             }
         
             await api.post('/api/blogs')
+                .set('Authorization', `Bearer ${await testHelper.getInitialToken()}`)
                 .send(blog)
                 .expect(400)
         })
@@ -110,6 +113,7 @@ describe('When some blogs exist', async ()=>{
             }
         
             await api.post('/api/blogs')
+                .set('Authorization', `Bearer ${await testHelper.getInitialToken()}`)
                 .send(blog)
                 .expect(400)
         })
@@ -123,6 +127,7 @@ describe('When some blogs exist', async ()=>{
             }
         
             await api.post('/api/blogs')
+                .set('Authorization', `Bearer ${await testHelper.getInitialToken()}`)
                 .send(blog)
                 .expect(201)
 
@@ -140,6 +145,7 @@ describe('When some blogs exist', async ()=>{
             }
             
             await api.post('/api/blogs')
+                .set('Authorization', `Bearer ${await testHelper.getInitialToken()}`)
                 .send(blog)
                 .expect(201)
 
@@ -159,6 +165,7 @@ describe('When some blogs exist', async ()=>{
             }
             
             await api.post('/api/blogs')
+                .set('Authorization', `Bearer ${await testHelper.getInitialToken()}`)
                 .send(blog)
                 .expect(201)
 
@@ -182,6 +189,7 @@ describe('When some blogs exist', async ()=>{
             }
             
             const resBlog = await api.post('/api/blogs')
+                .set('Authorization', `Bearer ${await testHelper.getInitialToken()}`)
                 .send(blog)
                 .expect(201)
 
@@ -192,6 +200,95 @@ describe('When some blogs exist', async ()=>{
 
             const myBlogs = users[users.length - 1].blogs
             assert.strictEqual(myBlogs[myBlogs.length-1].id, resBlog.body.id)
+        })
+
+        test('blog cant be added without proper authorization', async () => {
+            const blog = {
+                'title': 'Stonebaked door',
+                'author': 'Georgia stonemason',
+                'url': 'localhost',
+                'likes': 5
+            }
+
+            const res = await api.post('/api/blogs')
+                .set('Authorization', `Bearer fakeToken`)
+                .send(blog)
+                .expect(400)
+                .expect('Content-Type', /application\/json/)
+        
+            const blogs = await testHelper.getBlogs()
+        
+            assert.strictEqual(blogs.length, testHelper.initBlogs.length)
+            assert(res.body.error.includes('token missing or invalid'))
+        })
+
+        test('blog cant be added without proper authorization 2', async () => {
+            const blog = {
+                'title': 'Stonebaked door',
+                'author': 'Georgia stonemason',
+                'url': 'localhost',
+                'likes': 5
+            }
+
+            const res = await api.post('/api/blogs')
+                .set('Authorization', `Bearer ${await testHelper.getInvalidToken()}`)
+                .send(blog)
+                .expect(400)
+                .expect('Content-Type', /application\/json/)
+        
+            const blogs = await testHelper.getBlogs()
+        
+            assert.strictEqual(blogs.length, testHelper.initBlogs.length)
+            assert(res.body.error.includes('malformatted id'))
+        })
+
+        test('blog cant be added with expired authorization', async () => {
+            const blog = {
+                'title': 'Stonebaked door',
+                'author': 'Georgia stonemason',
+                'url': 'localhost',
+                'likes': 5
+            }
+
+            const res = await api.post('/api/blogs')
+                .set('Authorization', `Bearer ${await testHelper.getExpiredToken()}`)
+                .send(blog)
+                .expect(401)
+                .expect('Content-Type', /application\/json/)
+        
+            const blogs = await testHelper.getBlogs()
+        
+            assert.strictEqual(blogs.length, testHelper.initBlogs.length)
+            assert(res.body.error.includes('token expired'))
+        })
+
+        test('authenticated user is designed as the creator', async () => {
+            const user = {user: 'jack', name: 'Jack', password: 'hunter2'}
+
+            const res = await api.post('/api/users')
+                .send(user)
+                .expect(201)
+                .expect('Content-Type', /application\/json/)
+
+            const token = testHelper.getUserToken({user: res.body.user, id: res.body.id})
+
+            const blog = {
+                'title': 'Jacks diary',
+                'author': 'Jack',
+                'url': 'jacknickels.fakeaddress',
+                'likes': 0
+            }
+            const oldBlogs = await testHelper.getBlogs()
+            const resBlog = await api.post('/api/blogs')
+                .set('Authorization', `Bearer ${token}`)
+                .send(blog)
+                .expect(201)
+                .expect('Content-Type', /application\/json/)
+
+            const newBlogs = await testHelper.getBlogs()
+
+            assert.strictEqual(newBlogs.length, oldBlogs.length + 1)
+            assert.strictEqual(resBlog.body.user, res.body.id)
         })
     })
     
@@ -218,6 +315,7 @@ describe('When some blogs exist', async ()=>{
             }
         
             await api.put(`/api/blogs/${firstBlog.id}`)
+                .set('Authorization', `Bearer ${await testHelper.getInitialToken()}`)
                 .send(newBlog)
                 .expect(201)
         

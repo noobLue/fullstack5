@@ -7,6 +7,10 @@ const unknownEndpoint = (req, res) => {
 const errorHandler = (err, req, res, next) => {
     logger.error(`[${err.name}] `, err.message)
 
+    if(err.name === 'CastError')
+    {
+        return res.status(400).send({error: 'malformatted id'})
+    }
     if(err.name === 'ValidationError')
     {
         return res.status(400).json({error: err.message})
@@ -14,6 +18,14 @@ const errorHandler = (err, req, res, next) => {
     else if (err.name === 'MongoServerError' && err.message.includes('E11000 duplicate key error collection'))
     {
         return res.status(400).json({error: 'username must be unique'})
+    }
+    else if (err.name === 'JsonWebTokenError')
+    {
+        return res.status(400).json({error: 'token missing or invalid'})
+    }
+    else if (err.name === 'TokenExpiredError')
+    {
+        return res.status(401).json({error: 'token expired'})
     }
 
     next(err)

@@ -1,6 +1,7 @@
 const bcrypt = require('bcrypt')
 const Blog = require('../models/blog')
 const User = require('../models/user')
+const jwt = require('jsonwebtoken')
 
 const initBlogs = [
     {
@@ -46,9 +47,27 @@ const getInitialUser = async () => {
     return new User({user: 'root', name: 'Anttoni', passwordHash})
 }
 
+const getUserToken = (user) => {
+    return jwt.sign({username: user.user, id: user.id}, process.env.SECRET)
+}
+
 const getDatabase = async (db) => {
     const values = await db.find({})
     return values.map(v => v.toJSON())
+}
+
+const getInitialToken = async () => {
+    const user = (await getDatabase(User))[0]
+    return getUserToken(user)
+}
+
+const getInvalidToken = async () => {
+    return jwt.sign({username: 'root', id: '1'}, process.env.SECRET)
+}
+
+const getExpiredToken = async () => {
+    const user = (await getDatabase(User))[0]
+    return jwt.sign({username: user.user, id: user._id}, process.env.SECRET, { expiresIn: 0})
 }
 
 const getBlogs = async () => {
@@ -59,4 +78,4 @@ const getUsers = async () => {
     return await getDatabase(User)
 }
 
-module.exports = { initBlogs, getBlogs, getUsers, getInitialUser }
+module.exports = { initBlogs, getBlogs, getUsers, getInitialUser, getUserToken, getInitialToken, getInvalidToken, getExpiredToken }
