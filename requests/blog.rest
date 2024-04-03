@@ -5,6 +5,7 @@ GET http://localhost:3000/api/blogs
 
 POST http://localhost:3000/api/blogs
 Content-Type: application/json
+Authorization: Bearer token
 
 {
     "title": "Stonebaked door",

@@ -156,6 +156,24 @@ describe('When some blogs exist', async ()=>{
             assert(blogs[blogs.length - 1].user.name)
         })
 
+        test('post returns user info', async () => {
+            const blog = {
+                'title': 'Stonebaked door',
+                'url': 'test',
+                'author': 'Georgia stonemason',
+                'likes': 5
+            }
+            
+            const res = await api.post('/api/blogs')
+                .set('Authorization', `Bearer ${await testHelper.getInitialToken()}`)
+                .send(blog)
+                .expect(201)
+
+            assert.strictEqual(res.body.user.user, "root")
+            assert.strictEqual(res.body.user.name, "Anttoni")
+        })
+
+
         test('blogs user doesnt have passwordHash', async () => {
             const blog = {
                 'title': 'Stonebaked door',
@@ -305,7 +323,7 @@ describe('When some blogs exist', async ()=>{
                 const newBlogs = await testHelper.getBlogs()
     
                 assert.strictEqual(newBlogs.length, oldBlogs.length + 1)
-                assert.strictEqual(resBlog.body.user, res.body.id)
+                assert.strictEqual(resBlog.body.user.id, res.body.id)
             })
         })
     })

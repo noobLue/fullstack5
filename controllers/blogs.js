@@ -12,7 +12,6 @@ blogsRouter.get('/', async(req, res) => {
 blogsRouter.post('/', async (req, res) => {
     const {title, author, url, likes} = req.body
 
-    //const decodedToken = jwt.verify(req.token, process.env.SECRET)
     if(!req.user)
         return res.status(401).json({error: 'invalid token'})
     
@@ -26,9 +25,14 @@ blogsRouter.post('/', async (req, res) => {
         user: user.id
     })
 
-    const savedBlog = await newBlog.save()
+    let savedBlog = await newBlog.save()
+
     user.blogs = user.blogs.concat(savedBlog._id)
     await user.save()
+
+    await savedBlog.populate('user', {user: 1, name: 1, id: 1})
+    // Alternative: (requires to remove blogs array from user)
+    // savedBlog.user = user
 
     res.status(201).json(savedBlog)
 })
