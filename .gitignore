@@ -7,3 +7,6 @@ dist/
 # Dependency directories
 node_modules/
 jspm_packages/
+
+# rest-client requests
+requests/

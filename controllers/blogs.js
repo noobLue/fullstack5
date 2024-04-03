@@ -61,10 +61,12 @@ blogsRouter.put('/:id', async (req, res) => {
     }
     
     const oldBlog = await Blog.findById(id)
-    if(!req.user || oldBlog.user.toString() !== req.user.toString())
+
+    // Removed so users can like other users blogs
+    /*if(!req.user || oldBlog.user.toString() !== req.user.toString())
     {
         return res.status(401).json({error: 'user does not match blog owner'})
-    }
+    }*/
 
     const settings = { new: true, runValidators: true, context: 'query' }
 
