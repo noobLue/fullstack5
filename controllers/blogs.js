@@ -56,7 +56,8 @@ blogsRouter.put('/:id', async (req, res) => {
         title: req.body.title,
         author: req.body.author,
         url: req.body.url,
-        likes: req.body.likes
+        likes: req.body.likes,
+        user: req.body.user
     }
     
     const oldBlog = await Blog.findById(id)
@@ -68,6 +69,9 @@ blogsRouter.put('/:id', async (req, res) => {
     const settings = { new: true, runValidators: true, context: 'query' }
 
     const newBlog = await Blog.findByIdAndUpdate(id, blog, settings)
+
+    await newBlog.populate('user', {user: 1, name: 1, id: 1})
+
     res.status(201).json(newBlog)
 })
 

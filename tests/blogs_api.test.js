@@ -156,7 +156,7 @@ describe('When some blogs exist', async ()=>{
             assert(blogs[blogs.length - 1].user.name)
         })
 
-        test('post returns user info', async () => {
+        test('post returns user info in blog', async () => {
             const blog = {
                 'title': 'Stonebaked door',
                 'url': 'test',
@@ -400,6 +400,24 @@ describe('When some blogs exist', async ()=>{
             assert.notStrictEqual(blogsAfter[0].likes, 99)
             assert.strictEqual(blogsAfter[0].likes, firstBlog.likes)
         }) 
+
+        test('put returns user info in blog', async () => {
+            const blogs = await testHelper.getBlogs()
+            const firstBlog = blogs[0]
+        
+            const newBlog = {
+                ...firstBlog,
+                likes: 99
+            }
+        
+            const res = await api.put(`/api/blogs/${firstBlog.id}`)
+                .set('Authorization', `Bearer ${await testHelper.getInitialToken()}`)
+                .send(newBlog)
+                .expect(201)
+
+            assert.strictEqual(res.body.user.user, 'root')
+            assert.strictEqual(res.body.user.name, 'Anttoni')
+        })
     })
 
 })
